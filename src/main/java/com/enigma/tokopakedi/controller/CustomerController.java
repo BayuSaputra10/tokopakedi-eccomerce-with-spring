@@ -35,8 +35,15 @@ public class CustomerController {
         return byId.orElse(null);
     }
 
-//    @GetMapping(path = "/customers")
-//    public List<Customer> customerList(){
-//
-//    }
+    @GetMapping(path = "/customers")
+    public List<Customer> customerList(){
+        List<Customer> resultCustomer = customerRepository.findAll();
+        return resultCustomer;
+    }
+
+    @PutMapping(path = "/customers")
+    public Customer updateCustomer(@RequestBody Customer customer){
+        Customer updateCustomer = customerRepository.save(customer);
+        return updateCustomer;
+    }
 }
