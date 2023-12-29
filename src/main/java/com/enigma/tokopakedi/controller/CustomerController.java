@@ -36,6 +36,18 @@ public class CustomerController {
 //    }
 
 
+    @GetMapping(path = "customer")
+    public ResponseEntity<WebResponse<Customer>> getById(@RequestParam Customer id){
+        Customer byId = customerService.findById(id.getId());
+
+        WebResponse<Customer> webResponse = WebResponse.<Customer>builder()
+                .message(byId.getName() + "Ditemukan")
+                .status(HttpStatus.OK.getReasonPhrase())
+                .data(byId)
+                .build();
+
+        return ResponseEntity.ok(webResponse);
+    }
 
     @PostMapping(path = "/customers")
     public ResponseEntity<WebResponse<Customer>> newCustomer(@RequestBody Customer customer) {
@@ -61,7 +73,7 @@ public class CustomerController {
         return ResponseEntity.ok(webResponse);
     }
 
-    @GetMapping(path = "/customer")
+    @GetMapping(path = "/customerst")
     public ResponseEntity<WebResponse<Customer>> customerfindById(@RequestParam(name = "id") Customer customer) {
         WebResponse<Customer> response = WebResponse.<Customer>builder()
                 .message("Succes Get Customer By Id")

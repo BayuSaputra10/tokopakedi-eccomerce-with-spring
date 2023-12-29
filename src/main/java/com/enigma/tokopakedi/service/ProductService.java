@@ -13,7 +13,7 @@ public interface ProductService {
 //    Page<Product> paging(SearchProductRequest request);
     Page<Product> getAll(SearchProductRequest request);
     List<Product> setBulk(List<Product> addList);
-    Product getById(Product product);
+    Product getById(String product);
 
     Product create(Product product);
 

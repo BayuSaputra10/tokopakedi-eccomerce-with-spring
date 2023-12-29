@@ -44,7 +44,7 @@ public class ProductController {
 
     @GetMapping(path = "/product")
     public ResponseEntity<WebResponse<Product>> getProductsById(@RequestParam Product id){
-        Product byId = productService.getById(id);
+        Product byId = productService.getById(id.getId());
 
         WebResponse<Product> response = WebResponse.<Product>builder()
                 .message("Succesfully get product by Id" )
