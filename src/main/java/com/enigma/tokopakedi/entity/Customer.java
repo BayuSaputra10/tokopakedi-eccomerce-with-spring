@@ -2,13 +2,15 @@ package com.enigma.tokopakedi.entity;
 
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Setter;
+import lombok.*;
 
 @Data
 @Setter
 @Entity
 @Table(name = "m_customer")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Customer {
 
     @Id
@@ -20,4 +22,7 @@ public class Customer {
     private String address;
 
     private String phoneNumber;
+
+    @OneToOne
+    private UserCredential userCredential;
 }

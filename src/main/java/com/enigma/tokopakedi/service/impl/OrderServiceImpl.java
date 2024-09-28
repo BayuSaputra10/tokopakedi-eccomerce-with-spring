@@ -88,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderDetails> orderDetails = new ArrayList<>();
 
         for (OrderDetailRequest orderDetailRequest : request.getOrderDetails()) {
-            Product product = productService.getById(orderDetailRequest.getProductId());
+            Product  product = productService.getById(orderDetailRequest.getProductId());
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .order(order)

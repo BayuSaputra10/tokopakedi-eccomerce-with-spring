@@ -1,6 +1,7 @@
 package com.enigma.tokopakedi.service.impl;
 
 import com.enigma.tokopakedi.constant.Erole;
+import com.enigma.tokopakedi.entity.Customer;
 import com.enigma.tokopakedi.entity.Role;
 import com.enigma.tokopakedi.entity.UserCredential;
 import com.enigma.tokopakedi.model.AuthRequest;
@@ -8,12 +9,19 @@ import com.enigma.tokopakedi.model.UserResponse;
 import com.enigma.tokopakedi.repository.UserCredentialRepository;
 import com.enigma.tokopakedi.security.JwtUtils;
 import com.enigma.tokopakedi.service.AuthService;
+import com.enigma.tokopakedi.service.CustomerService;
 import com.enigma.tokopakedi.service.RoleService;
+import com.enigma.tokopakedi.utils.ValidationUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -29,10 +37,15 @@ public class AuthServiceImpl implements AuthService {
 
     private final RoleService roleService;
     private final JwtUtils jwtUtils;
+    private final AuthenticationManager authenticationManager;
+
+    private final CustomerService customerService;
+
+    private final ValidationUtils validationUtils;
 
 @PostConstruct
+@Transactional(rollbackFor = Exception.class)
     public void initSuperAdmin(){
-
         Optional<UserCredential> optionalUserCredential = userCredentialRepository
                 .findByEmail("superadmin@gmail.com");
         if (optionalUserCredential.isPresent()) return;
@@ -50,12 +63,22 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
             userCredentialRepository.saveAndFlush(userCredential);
+
+    Customer customer = Customer.builder()
+            .userCredential(userCredential)
+            .build();
+
+    customerService.create(customer);
+
     }
 
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public UserResponse register(AuthRequest request) {
+        validationUtils.validate(request);
+
         Role roleCustomer = roleService.getOrSave(Erole.ROLE_CUSTOMER);
 
         String hashPassword = passwordEncoder.encode(request.getPassword());
@@ -68,6 +91,11 @@ public class AuthServiceImpl implements AuthService {
 
             userCredentialRepository.saveAndFlush(userCredential);
 
+        Customer customer = Customer.builder()
+                .userCredential(userCredential)
+                .build();
+
+        customerService.create(customer);
 
         return toUserResponse(userCredential);
     }
@@ -75,7 +103,9 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public UserResponse registerAdmin(AuthRequest request) {
+        validationUtils.validate(request);
 
         Role roleCustomer = roleService.getOrSave(Erole.ROLE_CUSTOMER);
         Role roleAdmin = roleService.getOrSave(Erole.ROLE_ADMIN);
@@ -90,17 +120,29 @@ public class AuthServiceImpl implements AuthService {
 
         userCredentialRepository.saveAndFlush(userCredential);
 
+        Customer customer = Customer.builder()
+                .userCredential(userCredential)
+                .build();
+
+        customerService.create(customer);
+
         return toUserResponse(userCredential);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String login(AuthRequest request) {
-        Optional<UserCredential> optionalUserCredential = userCredentialRepository
-                .findByEmail(request.getEmail());
+        validationUtils.validate(request);
 
-        if (optionalUserCredential.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"unauthorized");
 
-        return jwtUtils.generateToken(optionalUserCredential.get());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword());
+
+        Authentication authenticate = authenticationManager.authenticate(authentication);
+
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+
+        UserCredential userCredential = (UserCredential) authenticate.getPrincipal();
+                return jwtUtils.generateToken(userCredential);
     }
 
     private static UserResponse toUserResponse(UserCredential userCredential) {

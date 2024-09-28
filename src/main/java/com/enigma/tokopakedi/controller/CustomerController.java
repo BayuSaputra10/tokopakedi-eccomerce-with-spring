@@ -49,17 +49,17 @@ public class CustomerController {
         return ResponseEntity.ok(webResponse);
     }
 
-    @PostMapping(path = "/customers")
-    public ResponseEntity<WebResponse<Customer>> newCustomer(@RequestBody Customer customer) {
-        Customer customer1 = customerService.create(customer);
-        WebResponse<Customer> customerWebResponse = WebResponse.<Customer>builder()
-                .message(customer.getName() + " Succes To Add Data")
-                .status(HttpStatus.CREATED.getReasonPhrase())
-                .data(customer1)
-                .build();
-
-        return ResponseEntity.ok(customerWebResponse);
-    }
+//    @PostMapping(path = "/customers")
+//    public ResponseEntity<WebResponse<Customer>> newCustomer(@RequestBody Customer customer) {
+//        Customer customer1 = customerService.create(customer);
+//        WebResponse<Customer> customerWebResponse = WebResponse.<Customer>builder()
+//                .message(customer.getName() + " Succes To Add Data")
+//                .status(HttpStatus.CREATED.getReasonPhrase())
+//                .data(customer1)
+//                .build();
+//
+//        return ResponseEntity.ok(customerWebResponse);
+//    }
 
     @DeleteMapping(path = "/customers")
     public ResponseEntity<WebResponse<Customer>> deleteCustomer(@RequestParam String id) {
@@ -129,6 +129,7 @@ public class CustomerController {
 
     @PutMapping(path = "/customers")
     public ResponseEntity<WebResponse<Customer>> updateCustomer(@RequestBody Customer customer){
+
 
         WebResponse<Customer> customerWebResponse = WebResponse.<Customer>builder()
                 .message(customer.getName() +" Succes To Update ")

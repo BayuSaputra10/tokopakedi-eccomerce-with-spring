@@ -1,6 +1,7 @@
 package com.enigma.tokopakedi.service.impl;
 
 import com.enigma.tokopakedi.entity.Customer;
+import com.enigma.tokopakedi.entity.UserCredential;
 import com.enigma.tokopakedi.model.SearchCustomerRequest;
 import com.enigma.tokopakedi.repository.CustomerRepository;
 import com.enigma.tokopakedi.service.CustomerService;
@@ -9,7 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +77,14 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer updateCustomer(Customer customer) {
         Optional<Customer> byIdFind = customerRepository.findById(customer.getId());
         if (byIdFind.isEmpty())throw new RuntimeException("Can not find Data");
+
+        UserCredential userCredential = (UserCredential) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserCredential credential = byIdFind.get().getUserCredential();
+
+        if (!userCredential.getId().equals(credential.getId())) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Forbidden");
+
+        customer.setUserCredential(credential);
+
         return customerRepository.save(customer);
     }
 
